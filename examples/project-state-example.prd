@@ -1,0 +1,677 @@
+# Project State Example: Task Management SaaS
+
+**Last Updated**: 2025-10-10  
+**Project**: TaskFlow - Collaborative Task Management Platform  
+**Version**: 2.3.0
+
+---
+
+## Overview
+
+TaskFlow is a collaborative task management SaaS application that enables teams to organize, track, and complete work efficiently. It provides real-time collaboration, role-based permissions, notifications, and integrations with popular tools.
+
+**Project Type**: Web Application (SaaS)  
+**Primary Language(s)**: Python (backend), TypeScript (frontend)  
+**Architecture Pattern**: Microservices with API Gateway
+
+---
+
+## Current Status
+
+**Active Initiatives**: 3  
+**Completed Initiatives**: 12  
+**Total Modules**: 8
+
+**Key Milestones**:
+- MVP Launch: Complete (2024-06-01)
+- User Authentication: Complete (2024-06-15)
+- Task Management Core: Complete (2024-07-30)
+- Real-time Collaboration: Complete (2024-09-15)
+- v2.0 Release: Complete (2024-10-01)
+- Mobile App: In Progress (Target: 2025-11-15)
+- Advanced Analytics: In Progress (Target: 2025-12-01)
+- API v2: Planned (2026-01-01)
+
+---
+
+## Modules
+
+### Module Hierarchy
+
+```
+Foundation Layer
+├── Development Environment
+└── Database Layer
+
+Infrastructure Layer
+├── API Gateway
+└── Background Jobs System
+
+Core Services
+├── Authentication System
+├── User Management
+└── Task Management Core
+
+Application Layer
+├── Dashboard UI
+└── Notification System
+```
+
+---
+
+## Module: Development Environment
+
+**Summary**: Defines local development setup with Docker Compose, database migrations, and hot-reload for both frontend and backend services.
+
+**Status**: Active
+
+**Key Decisions**:
+- Docker Compose for consistent local environment across team
+- PostgreSQL 15 for relational data, Redis for caching
+- Separate frontend (Next.js) and backend (FastAPI) dev servers
+- Alembic for database migrations with auto-generation
+
+**Acceptance Criteria**:
+- New developers can run `make setup` and have working environment in <10 minutes
+- Hot-reload works for both frontend and backend code changes
+- Database migrations apply successfully on first setup
+- All services accessible at documented localhost ports
+
+**Tech Stack**:
+- Docker 24+ and Docker Compose
+- Python 3.11, Node.js 20+
+- PostgreSQL 15, Redis 7
+- Make (for convenience scripts)
+
+**Interfaces**:
+- `make setup`: Initialize environment
+- `make dev`: Start all services
+- `make test`: Run test suites
+- `make migrate`: Apply database migrations
+- Backend: http://localhost:8000
+- Frontend: http://localhost:3000
+
+**Dependencies**:
+- None (foundation module)
+- Used by: All other modules
+
+---
+
+## Module: Database Layer
+
+**Summary**: Manages PostgreSQL database with SQLAlchemy ORM, connection pooling, migration system, and backup strategy for all persistent data.
+
+**Status**: Active
+
+**Key Decisions**:
+- PostgreSQL 15 for ACID compliance and advanced features
+- SQLAlchemy 2.0 with async support for ORM
+- Alembic for schema migrations with rollback capability
+- Connection pooling (pool size: 20, max overflow: 10)
+
+**Acceptance Criteria**:
+- Database connections pooled efficiently (<100ms query latency)
+- Migrations are reversible and tested
+- Foreign key constraints enforced
+- Automated daily backups with 30-day retention
+- Read replicas used for reporting queries
+
+**Tech Stack**:
+- PostgreSQL 15
+- SQLAlchemy 2.0 (async)
+- Alembic (migrations)
+- pg_dump (backups)
+
+**Interfaces**:
+- `db.Session`: SQLAlchemy session factory
+- `db.get_db()`: Dependency injection for FastAPI
+- `alembic upgrade head`: Apply migrations
+- `alembic downgrade -1`: Rollback one migration
+- Database URL: `postgresql://user:pass@host/dbname`
+
+**Dependencies**:
+- Depends on: Development Environment
+- Used by: Authentication System, User Management, Task Management Core, Background Jobs
+
+**Database Tables**:
+- **users**: Core user accounts
+- **teams**: Team organizations
+- **projects**: Project containers
+- **tasks**: Individual tasks
+- **comments**: Task comments
+- **attachments**: File attachments
+- **activity_log**: Audit trail
+
+**For Detailed Documentation**: See `modules/database-layer.md`
+
+---
+
+## Module: API Gateway
+
+**Summary**: FastAPI-based gateway handling routing, rate limiting, CORS, request validation, and centralized error handling for all backend services.
+
+**Status**: Active
+
+**Key Decisions**:
+- FastAPI for async performance and automatic OpenAPI docs
+- JWT middleware for authentication on all protected routes
+- Rate limiting: 100 req/min per user, 1000 req/min per IP
+- CORS enabled for web app domain only (security)
+
+**Acceptance Criteria**:
+- All API routes documented in OpenAPI/Swagger
+- Rate limiting prevents abuse (429 responses)
+- Authentication middleware rejects invalid tokens
+- Request validation returns clear 400 errors
+- API responds within 200ms (p95) for read operations
+
+**Tech Stack**:
+- FastAPI 0.104+
+- Pydantic 2.0 (validation)
+- slowapi (rate limiting)
+- uvicorn (ASGI server)
+
+**Interfaces**:
+- `GET /api/health`: Health check
+- `GET /api/docs`: OpenAPI documentation
+- `POST /api/*`: Various endpoints
+- Middleware: `authenticate()`, `rate_limit()`
+- Error responses: Standardized JSON format
+
+**Dependencies**:
+- Depends on: Database Layer, Development Environment
+- Used by: Authentication System, User Management, Task Management Core
+
+**Configuration**:
+- `API_BASE_URL`: Base URL for API
+- `CORS_ORIGINS`: Allowed origins (default: frontend domain)
+- `RATE_LIMIT_PER_USER`: Requests per minute (default: 100)
+
+**For Detailed Documentation**: See `modules/api-gateway.md`
+
+---
+
+## Module: Authentication System
+
+**Summary**: Handles user authentication with JWT tokens, password hashing with bcrypt, OAuth integrations (Google, GitHub), and role-based access control.
+
+**Status**: Active
+
+**Key Decisions**:
+- JWT tokens (24h access, 30d refresh) for stateless auth
+- Bcrypt (cost 12) for password hashing
+- OAuth 2.0 for social logins (Google, GitHub)
+- RBAC with roles: Owner, Admin, Member, Viewer
+
+**Acceptance Criteria**:
+- Users can register and login via email/password or OAuth
+- JWT tokens validated on every protected request
+- Password reset flow works via email
+- Role permissions enforced across all features
+- 2FA support via TOTP (optional per user)
+
+**Tech Stack**:
+- PyJWT 2.8+
+- bcrypt 4.0+
+- authlib 1.2+ (OAuth)
+- pyotp (2FA)
+
+**Interfaces**:
+- `POST /api/auth/register`: Register new user
+- `POST /api/auth/login`: Login with credentials
+- `POST /api/auth/oauth/{provider}`: OAuth login
+- `POST /api/auth/refresh`: Refresh access token
+- `POST /api/auth/logout`: Invalidate tokens
+- `POST /api/auth/reset-password`: Request password reset
+- Middleware: `@require_auth`, `@require_role(role)`
+
+**Dependencies**:
+- Depends on: Database Layer, API Gateway
+- Used by: All protected API endpoints
+
+**Database Tables**:
+- users (id, email, password_hash, oauth_provider, oauth_id)
+- roles (id, name, permissions)
+- user_roles (user_id, role_id)
+- refresh_tokens (token, user_id, expires_at)
+
+**For Detailed Documentation**: See `modules/authentication-system.md`
+
+---
+
+## Module: User Management
+
+**Summary**: Manages user profiles, team membership, invitations, permissions, and user preferences including notification settings and theme choices.
+
+**Status**: Active
+
+**Key Decisions**:
+- Users belong to multiple teams with different roles
+- Email invitations expire after 7 days
+- Profile avatars stored in S3 (max 2MB)
+- User preferences stored as JSON for flexibility
+
+**Acceptance Criteria**:
+- Users can update profile (name, avatar, bio)
+- Team owners can invite users via email
+- Invitations can be accepted or declined
+- Users can leave teams (except if last owner)
+- User search works by name or email
+
+**Tech Stack**:
+- FastAPI (endpoints)
+- SQLAlchemy (models)
+- boto3 (S3 for avatars)
+- Celery (invitation emails)
+
+**Interfaces**:
+- `GET /api/users/me`: Get current user profile
+- `PUT /api/users/me`: Update profile
+- `GET /api/users/{id}`: Get user by ID
+- `POST /api/teams/{id}/invite`: Invite user to team
+- `POST /api/invitations/{token}/accept`: Accept invitation
+- `DELETE /api/teams/{id}/members/{user_id}`: Remove team member
+
+**Dependencies**:
+- Depends on: Authentication System, Database Layer, Background Jobs
+- Used by: Task Management Core, Dashboard UI
+
+**Database Tables**:
+- users (extended from auth)
+- teams (id, name, created_by)
+- team_members (team_id, user_id, role)
+- invitations (id, team_id, email, token, expires_at)
+
+**For Detailed Documentation**: See `modules/user-management.md`
+
+---
+
+## Module: Task Management Core
+
+**Summary**: Core task functionality including creation, assignment, status tracking, comments, attachments, and real-time updates via WebSockets for collaborative editing.
+
+**Status**: Active
+
+**Key Decisions**:
+- Tasks organized by Projects within Teams
+- Status workflow: Todo → In Progress → Review → Done
+- Real-time collaboration via WebSockets (Socket.IO)
+- Markdown support for task descriptions and comments
+- Attachments stored in S3 (max 10MB per file)
+
+**Acceptance Criteria**:
+- Tasks can be created, updated, deleted by authorized users
+- Assignments and status changes trigger notifications
+- Comments appear in real-time for other users
+- Search works across task titles, descriptions, and comments
+- Task history tracked in activity log
+
+**Tech Stack**:
+- FastAPI (REST API)
+- Socket.IO (WebSockets)
+- SQLAlchemy (models)
+- Elasticsearch 8+ (search)
+- boto3 (S3 attachments)
+
+**Interfaces**:
+- `POST /api/projects/{id}/tasks`: Create task
+- `GET /api/tasks/{id}`: Get task details
+- `PUT /api/tasks/{id}`: Update task
+- `DELETE /api/tasks/{id}`: Delete task
+- `POST /api/tasks/{id}/comments`: Add comment
+- `POST /api/tasks/{id}/attachments`: Upload attachment
+- WebSocket: `ws://api/tasks/subscribe` (real-time updates)
+
+**Dependencies**:
+- Depends on: Database Layer, API Gateway, User Management, Background Jobs
+- Used by: Dashboard UI, Notification System
+
+**Database Tables**:
+- projects (id, team_id, name, description)
+- tasks (id, project_id, title, description, status, assignee_id, created_by)
+- comments (id, task_id, user_id, content, created_at)
+- attachments (id, task_id, filename, s3_key, size)
+- activity_log (id, task_id, user_id, action, timestamp)
+
+**Configuration**:
+- `S3_BUCKET_NAME`: S3 bucket for attachments
+- `ELASTICSEARCH_URL`: Search service URL
+- `WEBSOCKET_REDIS_URL`: Redis for Socket.IO adapter
+
+**For Detailed Documentation**: See `modules/task-management-core.md`
+
+---
+
+## Module: Dashboard UI
+
+**Summary**: Next.js frontend application providing responsive UI for task management, real-time updates, drag-and-drop kanban boards, and dark mode support.
+
+**Status**: Active
+
+**Key Decisions**:
+- Next.js 14 with App Router and Server Components
+- TailwindCSS for styling with custom design system
+- React Query for server state management
+- Socket.IO client for real-time features
+- Dark mode support with system preference detection
+
+**Acceptance Criteria**:
+- UI loads in <2 seconds on 3G connection
+- Drag-and-drop works smoothly for task reordering
+- Real-time updates appear without page refresh
+- Mobile responsive (works on phones and tablets)
+- Keyboard shortcuts for power users
+- 95+ Lighthouse performance score
+
+**Tech Stack**:
+- Next.js 14 (React framework)
+- TypeScript 5+
+- TailwindCSS 3+ (styling)
+- React Query 5+ (data fetching)
+- Socket.IO Client (real-time)
+- Radix UI (accessible components)
+
+**Interfaces**:
+- `/`: Dashboard home (project list)
+- `/projects/{id}`: Project kanban board
+- `/tasks/{id}`: Task detail view
+- `/settings`: User settings
+- `/teams/{id}`: Team management
+- API client: `api/client.ts` (axios wrapper)
+
+**Dependencies**:
+- Depends on: API Gateway, Authentication System, Task Management Core
+- Used by: End users (web browser)
+
+**Configuration**:
+- `NEXT_PUBLIC_API_URL`: Backend API URL
+- `NEXT_PUBLIC_WS_URL`: WebSocket URL
+- `NEXT_PUBLIC_OAUTH_GOOGLE_ID`: Google OAuth client ID
+
+**For Detailed Documentation**: See `modules/dashboard-ui.md`
+
+---
+
+## Module: Background Jobs System
+
+**Summary**: Celery-based asynchronous job processing for emails, notifications, data exports, analytics calculations, and scheduled maintenance tasks.
+
+**Status**: Active
+
+**Key Decisions**:
+- Celery with Redis broker for reliability
+- Separate queues: high priority, default, low priority
+- Retry strategy: exponential backoff (max 3 attempts)
+- Task monitoring via Flower web UI
+- Scheduled tasks via Celery Beat
+
+**Acceptance Criteria**:
+- Email notifications sent within 30 seconds
+- Failed jobs retry automatically with backoff
+- Job status queryable via API
+- Scheduled jobs run at correct intervals
+- Worker processes can scale horizontally
+
+**Tech Stack**:
+- Celery 5+
+- Redis 7 (broker and result backend)
+- Flower (monitoring)
+- Celery Beat (scheduler)
+
+**Interfaces**:
+- `tasks.send_email.delay(to, subject, body)`: Queue email
+- `tasks.generate_report.delay(user_id, report_type)`: Queue report
+- `tasks.calculate_analytics.delay()`: Queue analytics
+- Flower UI: http://localhost:5555
+
+**Dependencies**:
+- Depends on: Database Layer, Development Environment
+- Used by: Notification System, User Management, Task Management Core
+
+**Configuration**:
+- `CELERY_BROKER_URL`: Redis broker URL
+- `CELERY_RESULT_BACKEND`: Redis results URL
+- `CELERY_TASK_TIME_LIMIT`: Max task duration (default: 300s)
+
+**Scheduled Jobs**:
+- Daily: Database backup (2:00 AM UTC)
+- Daily: Generate analytics (3:00 AM UTC)
+- Weekly: Clean up old notifications (Sunday 1:00 AM)
+- Hourly: Process pending email queue
+
+**For Detailed Documentation**: See `modules/background-jobs-system.md`
+
+---
+
+## Module: Notification System
+
+**Summary**: Multi-channel notification delivery (in-app, email, push) with user preferences, batching for reduced noise, and notification history tracking.
+
+**Status**: Active
+
+**Key Decisions**:
+- In-app notifications via WebSocket (real-time)
+- Email digests for non-urgent notifications (hourly batch)
+- Push notifications via Firebase Cloud Messaging
+- User preferences control notification channels per event type
+- Notifications expire after 30 days
+
+**Acceptance Criteria**:
+- Users receive notifications for task assignments, mentions, comments
+- Email digests combine multiple notifications
+- Push notifications work on mobile devices
+- Users can mark notifications as read
+- Notification preferences save correctly
+
+**Tech Stack**:
+- Socket.IO (in-app real-time)
+- SendGrid (email delivery)
+- Firebase Cloud Messaging (push)
+- Celery (batching and delivery)
+
+**Interfaces**:
+- `GET /api/notifications`: List user notifications
+- `PUT /api/notifications/{id}/read`: Mark as read
+- `PUT /api/notifications/read-all`: Mark all as read
+- `GET /api/notifications/preferences`: Get preferences
+- `PUT /api/notifications/preferences`: Update preferences
+- WebSocket: `notifications` event (real-time)
+
+**Dependencies**:
+- Depends on: Background Jobs System, User Management, Task Management Core
+- Used by: Dashboard UI
+
+**Database Tables**:
+- notifications (id, user_id, type, content, read, created_at)
+- notification_preferences (user_id, event_type, email, push, in_app)
+
+**Configuration**:
+- `SENDGRID_API_KEY`: Email service API key
+- `FCM_SERVER_KEY`: Firebase push notification key
+- `EMAIL_DIGEST_INTERVAL`: Batch interval in minutes (default: 60)
+
+**For Detailed Documentation**: See `modules/notification-system.md`
+
+---
+
+## Cross-Cutting Concerns
+
+### Configuration Management
+- Environment variables for all secrets and URLs
+- `.env` files for local development (gitignored)
+- Kubernetes ConfigMaps and Secrets for production
+- Configuration validation on startup
+
+### Error Handling
+- Structured error responses (JSON with error code, message, details)
+- Sentry for error tracking and alerting
+- Detailed logging with correlation IDs
+- User-friendly error messages in UI
+
+### Security
+- HTTPS only in production
+- JWT tokens with short expiry
+- SQL injection prevention (parameterized queries)
+- CSRF protection via SameSite cookies
+- Rate limiting per IP and per user
+- Security headers (CSP, HSTS, etc.)
+- Regular dependency updates for CVE patches
+
+### Performance
+- Database query optimization with indexes
+- Redis caching for frequently accessed data (users, teams)
+- CDN for static assets (CloudFront)
+- Image optimization (WebP format, lazy loading)
+- Code splitting in frontend
+- Database read replicas for analytics
+
+### Testing
+- Backend: pytest with 85%+ coverage
+- Frontend: Jest + React Testing Library with 80%+ coverage
+- E2E: Playwright for critical user flows
+- Load testing: k6 for API endpoints (target: 1000 concurrent users)
+- CI: All tests run on every PR
+
+### Deployment
+- Kubernetes on AWS EKS
+- Blue-green deployments for zero downtime
+- Database migrations run in init containers
+- Horizontal pod autoscaling based on CPU/memory
+- Multi-region setup (US-East, EU-West)
+- Monitoring: Prometheus + Grafana
+
+---
+
+## Technology Stack Summary
+
+### Languages
+- Python 3.11 (backend)
+- TypeScript 5 (frontend)
+- SQL (database queries)
+
+### Backend Frameworks
+- FastAPI 0.104+ (API)
+- SQLAlchemy 2.0 (ORM)
+- Celery 5 (background jobs)
+- Socket.IO (WebSockets)
+
+### Frontend Frameworks
+- Next.js 14 (React framework)
+- React 18
+- TailwindCSS 3
+- React Query 5
+
+### Databases
+- PostgreSQL 15 (primary database)
+- Redis 7 (cache, job queue, session storage)
+- Elasticsearch 8 (search)
+
+### Infrastructure
+- Docker + Docker Compose (local dev)
+- Kubernetes (production)
+- AWS (cloud provider): EKS, RDS, S3, CloudFront
+- Terraform (infrastructure as code)
+
+### Third-Party Services
+- SendGrid (email)
+- Firebase Cloud Messaging (push notifications)
+- Sentry (error tracking)
+- Auth0 alternative: Authlib (OAuth)
+
+### Development Tools
+- Git + GitHub
+- pytest (Python testing)
+- Jest (JS testing)
+- Playwright (E2E testing)
+- ESLint + Prettier (linting/formatting)
+- pyright (Python type checking)
+
+---
+
+## Environment Setup
+
+**Prerequisites**:
+- Docker 24+ and Docker Compose
+- Git 2.0+
+- Make (optional but recommended)
+
+**Setup Steps**:
+```bash
+# 1. Clone repository
+git clone https://github.com/company/taskflow.git
+cd taskflow
+
+# 2. Copy environment file
+cp .env.example .env
+
+# 3. Run setup (builds images, creates DB, runs migrations)
+make setup
+
+# 4. Start all services
+make dev
+
+# Services will be available at:
+# - Frontend: http://localhost:3000
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+# - Flower (Celery): http://localhost:5555
+```
+
+**Running Tests**:
+```bash
+# Run all tests
+make test
+
+# Run backend tests only
+make test-backend
+
+# Run frontend tests only
+make test-frontend
+
+# Run E2E tests
+make test-e2e
+```
+
+---
+
+## Key Constraints and Limitations
+
+1. **WebSocket Scalability**: Socket.IO requires sticky sessions; using Redis adapter helps but adds complexity
+2. **Search Limitations**: Elasticsearch adds operational overhead; considering move to PostgreSQL full-text search
+3. **File Storage Costs**: S3 costs grow with attachment usage; considering object lifecycle policies
+4. **Real-time Performance**: WebSocket connections limited to ~10,000 per server instance
+5. **Mobile App**: Web-first design; native mobile features limited
+
+---
+
+## Future Considerations
+
+- **GraphQL API**: Replace REST with GraphQL for better frontend flexibility
+- **Offline Support**: PWA with offline task creation and sync
+- **Advanced Analytics**: Custom dashboards, time tracking, burndown charts
+- **Integrations**: Slack, Microsoft Teams, Jira sync
+- **AI Features**: Smart task suggestions, automated categorization
+- **White-label**: Multi-tenant white-label version for enterprises
+- **Performance**: Move to Rust for performance-critical services
+- **Search**: PostgreSQL full-text search to reduce Elasticsearch dependency
+
+---
+
+## Notes for LLMs
+
+When working on TaskFlow initiatives:
+
+1. **Read Module Dependencies**: Check dependency graph before starting tasks
+2. **Database Migrations**: Always create migration after model changes
+3. **API Changes**: Update OpenAPI docs when modifying endpoints
+4. **Real-time Features**: Test WebSocket behavior with multiple clients
+5. **Security**: Never expose sensitive data in logs or error messages
+6. **Testing**: Add tests for all new features (backend 85%+, frontend 80%+)
+7. **State Updates**: Update this document when adding/modifying modules
+
+---
+
+**Document Version**: 2.3  
+**Last Major Update**: 2025-10-01 (v2.0 release)  
+**Token Count**: ~4500 tokens (for 8 modules, ~560 tokens per module average)
+

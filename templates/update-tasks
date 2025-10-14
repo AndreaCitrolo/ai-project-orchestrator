@@ -1,0 +1,196 @@
+#!/usr/bin/env claude-command
+# Update Tasks
+# Usage: update-tasks [initiative-dir]
+# Add or delete tasks from initiative
+
+## READ CURRENT STATE
+
+Read `initiatives/[initiative-dir]/tasks.prd`
+Store ALL existing tasks with:
+- Task ID
+- Description (EXACT text)
+- Status ([x] or [ ])
+- Group number
+- Dependencies
+- Estimates
+
+## ASK USER INTENT
+
+Ask in single prompt:
+1. Action: A) Add tasks B) Delete tasks C) Both
+2. IF adding: Which group? New tasks details?
+3. IF deleting: Which task IDs to delete?
+
+## VALIDATE DELETIONS
+
+IF deleting tasks:
+
+For EACH task to delete:
+- [ ] Check if marked `[x]` (completed)
+- [ ] Scan ALL tasks for dependencies on this task
+
+IF task is `[x]`:
+STOP. Output: "❌ Cannot delete completed task TASK-XXX"
+
+IF other tasks depend on it:
+STOP. Output: "❌ Cannot delete TASK-XXX. Required by: [list dependent tasks]"
+
+## VALIDATE ADDITIONS
+
+IF adding tasks:
+
+For EACH new task:
+- [ ] Verify group number exists or is next sequential
+- [ ] Verify dependencies exist
+- [ ] Verify no duplicate task IDs
+- [ ] Assign next available TASK-XXX ID
+
+IF dependencies invalid:
+STOP. Output: "❌ Invalid dependency: [TASK-XXX]"
+
+## RECONSTRUCT tasks.prd
+
+CRITICAL: Preserve ALL tasks not being deleted
+
+For EACH existing task NOT being deleted:
+- EXACT same description
+- EXACT same status ([x] or [ ])
+- EXACT same dependencies
+- EXACT same estimate
+- Same group number
+
+For EACH new task:
+- Insert in correct group
+- Proper task ID (sequential)
+- Format matching existing tasks
+
+## WRITE UPDATED tasks.prd
+
+File: `initiatives/[initiative-dir]/tasks.prd`
+
+Structure:
+```markdown
+# Tasks: [Initiative Name]
+
+**Initiative**: [NNNN]-[status]-[name]
+**Generated**: [original date]
+**Updated**: [YYYY-MM-DD]
+
+## Task Group 0: [Name]
+
+[Preserved and new tasks in order]
+
+## Task Group 1: [Name]
+
+[Preserved and new tasks in order]
+
+[Continue for all groups...]
+```
+
+## UPDATE: status.prd
+
+Append:
+```
+[YYYY-MM-DD HH:MM] UPDATE tasks.prd
+Added: [N] tasks [or "None"]
+Deleted: [N] tasks [or "None"]
+Total: X tasks in Y groups
+```
+
+## RENUMBER IF NEEDED
+
+IF tasks deleted:
+- Task IDs stay same (preserve references)
+- Note: Gaps in numbering are OK
+
+IF tasks added:
+- Use next available ID
+- Maintain sequential order within group
+
+## VALIDATION
+
+MUST verify:
+- [ ] ALL non-deleted tasks preserved (exact text)
+- [ ] ALL statuses preserved ([x] or [ ])
+- [ ] NO completed tasks deleted
+- [ ] NO tasks with dependents deleted
+- [ ] New tasks have valid dependencies
+- [ ] Task IDs unique
+- [ ] Group numbers valid
+
+IF ANY validation fails: STOP. Do not write file.
+
+## OUTPUT
+
+Minimal output:
+```
+Tasks updated: initiatives/[initiative-dir]/tasks.prd
+Added: [N] tasks (Groups: [list])
+Deleted: [N] tasks (IDs: [list])
+Total: X tasks in Y groups
+Status: [VALID/ERROR]
+```
+
+## ERROR HANDLING
+
+IF deletion blocked by dependencies:
+```
+❌ Cannot delete:
+TASK-XXX (required by: TASK-YYY, TASK-ZZZ)
+
+Options:
+1. Delete dependent tasks first
+2. Update dependent tasks to remove dependency
+3. Cancel deletion
+```
+
+IF deletion of completed task:
+```
+❌ Cannot delete completed tasks:
+TASK-XXX [x] - already done
+
+Reason: Would invalidate project history
+```
+
+## EXAMPLES
+
+**Adding tasks:**
+```
+User: Add to Group 2
+- TASK-015: Create payment service (deps: TASK-012)
+- TASK-016: Add payment tests (deps: TASK-015)
+
+Result:
+Added: 2 tasks (Group 2)
+Total: 42 tasks in 7 groups
+```
+
+**Deleting tasks:**
+```
+User: Delete TASK-008, TASK-009
+
+Validation:
+- TASK-008 [ ] - OK
+- TASK-009 [ ] - ❌ Required by TASK-013
+
+Result:
+❌ Cannot delete TASK-009
+TASK-008 can be deleted if confirmed
+```
+
+**Preserving tasks:**
+```
+Original:
+- [x] TASK-001: Setup environment
+- [ ] TASK-002: Configure database
+- [ ] TASK-003: Create models
+
+Delete TASK-002:
+Check: No dependents ✓
+Check: Not complete ✓
+
+Result:
+- [x] TASK-001: Setup environment (preserved exactly)
+- [ ] TASK-003: Create models (preserved exactly)
+```
+

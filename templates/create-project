@@ -1,0 +1,133 @@
+#!/usr/bin/env claude-command
+# Create Project
+# Initializes ai-project/ workspace
+
+## CHECK DIRECTORY
+
+IF `ai-project/` exists: STOP. Ask user for action.
+
+## ASK REQUIRED
+
+Ask ALL at once:
+1. Project name?
+2. Project type? (Web App, API, Mobile, Library, etc)
+3. Primary languages?
+4. Brief description (1-2 sentences)?
+5. Initial modules (2-4)? Examples: Dev Environment, Database, API, Frontend, Auth
+6. Key technologies?
+
+## CREATE: project-state.prd
+
+File: `ai-project/project-state.prd`
+
+```markdown
+# Project State
+
+**Project**: [Name from Q1]
+**Version**: 0.1.0
+**Updated**: [YYYY-MM-DD]
+
+## Overview
+
+[Description from Q4]
+
+**Type**: [From Q2]
+**Languages**: [From Q3]
+
+## Status
+
+Initiatives: 0 active, 0 completed
+Modules: [N]
+Created: [YYYY-MM-DD]
+
+## Modules
+
+[For each module from Q5:]
+
+### Module: [Module Name]
+
+**Summary**: [1-2 sentence description based on type]
+
+**Key Decisions**:
+- [Decision 1]
+- [Decision 2]
+
+**Acceptance Criteria**:
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
+
+**Tech Stack**: [Relevant tech from Q6]
+
+**Interfaces**: TBD
+
+**Dependencies**: [List or "None"]
+
+**Status**: 🟡 Planned
+
+---
+
+## Architecture
+
+[Placeholder based on project type]
+
+## Notes
+
+- Uses AI Project Orchestrator
+- Initiative-based development
+- Target: <500 tokens per module
+```
+
+MUST keep each module <500 tokens.
+
+## CREATE: .ai-orchestrator
+
+File: `ai-project/.ai-orchestrator`
+
+```markdown
+# AI Project Orchestrator
+
+## Commands
+
+- Create Initiative: `Use ../templates/create-initiative`
+- Generate Tasks: `Use ../templates/generate-tasks [initiative-dir]`
+- Update Tasks: `Use ../templates/update-tasks [initiative-dir]`
+- Work on Task: `Use ../templates/start-task [initiative-dir] [TASK-ID]`
+- Close Initiative: `Use ../templates/close-initiative [initiative-dir]`
+
+## Quick Ref
+
+**Project State**: `cat project-state.prd`
+**Initiatives**: `ls initiatives/` (after first created)
+
+## Workflow
+
+1. Review project-state.prd
+2. Create initiative
+3. Generate tasks
+4. Start work
+
+## Rules
+
+- Modules <500 tokens
+- Tasks in groups
+- Parallel execution
+```
+
+## VALIDATION
+
+MUST verify:
+- [ ] ai-project/ created
+- [ ] project-state.prd created with ALL modules
+- [ ] Each module has: Summary, Decisions, Criteria, Stack, Dependencies
+- [ ] .ai-orchestrator created
+- [ ] Module count matches Q5
+- [ ] All Q1-6 answered
+
+## OUTPUT
+
+```
+Project: ai-project/
+Files: project-state.prd, .ai-orchestrator
+Modules: [N]
+Next: cd ai-project && Use ../templates/create-initiative
+```

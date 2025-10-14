@@ -1,0 +1,362 @@
+# Module: Authentication System
+
+**Last Updated**: 2025-10-10
+**Status**: active
+**Version**: 1.0.0
+
+---
+
+## Overview
+
+Comprehensive user authentication system with JWT-based authentication, role-based access control (RBAC), and secure password management. Serves as the foundation for all protected features in the application.
+
+**See project-state.prd for concise summary** (<500 tokens)
+
+This file contains detailed documentation for developers working directly on this module.
+
+---
+
+## Architecture
+
+### Design Pattern
+
+**Pattern**: Repository + Service Layer
+
+```
+Routes (FastAPI)
+   ↓
+Services (Business Logic)
+   ↓
+Repositories (Data Access)
+   ↓
+Models (SQLAlchemy)
+   ↓
+Database (PostgreSQL)
+```
+
+### Components
+
+1. **Models** (`auth/models.py`)
+   - User, Role, Permission
+   - UserRole, RolePermission (junction tables)
+
+2. **Services** (`auth/services.py`)
+   - PasswordService: hash, verify
+   - TokenService: generate, validate, refresh
+   - AuthService: register, login, logout
+
+3. **Routes** (`auth/routes.py`)
+   - FastAPI endpoints
+   - Request/response validation
+
+4. **Middleware** (`auth/middleware.py`)
+   - require_auth: JWT validation
+   - require_role: Role checking
+
+---
+
+## API Reference
+
+### POST /api/auth/register
+
+Register new user.
+
+**Request:**
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePass123"
+}
+```
+
+**Response (201):**
+```json
+{
+  "user_id": "uuid",
+  "email": "user@example.com",
+  "token": "eyJ...",
+  "expires_at": "2025-10-11T12:00:00Z"
+}
+```
+
+**Errors:**
+- 400: Invalid email/password format
+- 409: Email already exists
+
+### POST /api/auth/login
+
+Login with credentials.
+
+**Request:**
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePass123"
+}
+```
+
+**Response (200):**
+```json
+{
+  "token": "eyJ...",
+  "refresh_token": "refresh...",
+  "expires_at": "2025-10-11T12:00:00Z"
+}
+```
+
+**Errors:**
+- 401: Invalid credentials
+- 429: Too many attempts
+
+### POST /api/auth/refresh
+
+Refresh JWT token.
+
+**Request:**
+```json
+{
+  "refresh_token": "refresh..."
+}
+```
+
+**Response (200):**
+```json
+{
+  "token": "eyJ...",
+  "expires_at": "2025-10-11T12:00:00Z"
+}
+```
+
+### GET /api/auth/me
+
+Get current user info.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response (200):**
+```json
+{
+  "user_id": "uuid",
+  "email": "user@example.com",
+  "roles": ["admin", "editor"],
+  "created_at": "2025-10-01T10:00:00Z"
+}
+```
+
+---
+
+## Database Schema
+
+### users
+
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    
+    CONSTRAINT email_format CHECK (email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$')
+);
+
+CREATE INDEX idx_users_email ON users(email);
+```
+
+### roles
+
+```sql
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    
+    CONSTRAINT valid_role_name CHECK (name ~ '^[a-z_]+$')
+);
+
+-- Default roles
+INSERT INTO roles (name, description) VALUES
+    ('admin', 'Full system access'),
+    ('editor', 'Can create and modify content'),
+    ('viewer', 'Read-only access');
+```
+
+### permissions
+
+```sql
+CREATE TABLE permissions (
+    id SERIAL PRIMARY KEY,
+    resource VARCHAR(100) NOT NULL,
+    action VARCHAR(50) NOT NULL,
+    description TEXT,
+    
+    UNIQUE(resource, action)
+);
+```
+
+### user_roles
+
+```sql
+CREATE TABLE user_roles (
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    role_id INTEGER REFERENCES roles(id) ON DELETE CASCADE,
+    assigned_at TIMESTAMP DEFAULT NOW(),
+    
+    PRIMARY KEY (user_id, role_id)
+);
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+
+```bash
+# Required
+JWT_SECRET_KEY=your-secret-key-min-32-chars
+DATABASE_URL=postgresql://user:pass@localhost/dbname
+
+# Optional (with defaults)
+JWT_EXPIRY_HOURS=24
+JWT_ALGORITHM=HS256
+BCRYPT_COST_FACTOR=12
+MAX_LOGIN_ATTEMPTS=5
+RATE_LIMIT_PER_IP=100
+```
+
+### Configuration File
+
+`config/auth.yaml`:
+```yaml
+auth:
+  jwt:
+    expiry_hours: 24
+    algorithm: HS256
+  password:
+    min_length: 8
+    require_uppercase: true
+    require_number: true
+    require_special: false
+  rate_limiting:
+    max_attempts: 5
+    window_minutes: 15
+```
+
+---
+
+## Usage Examples
+
+### Protecting Routes
+
+```python
+from auth.middleware import require_auth, require_role
+
+@router.get("/api/protected")
+@require_auth
+async def protected_route(current_user: User = Depends(get_current_user)):
+    return {"message": f"Hello {current_user.email}"}
+
+@router.delete("/api/admin/users/{user_id}")
+@require_auth
+@require_role("admin")
+async def delete_user(user_id: str):
+    # Only admins can access
+    pass
+```
+
+### Using Services
+
+```python
+from auth.services import PasswordService, TokenService
+
+# Hash password
+password_service = PasswordService()
+hashed = password_service.hash_password("SecurePass123")
+
+# Verify password
+is_valid = password_service.verify_password("SecurePass123", hashed)
+
+# Generate token
+token_service = TokenService()
+token = token_service.generate_token(user_id="uuid")
+
+# Validate token
+payload = token_service.validate_token(token)
+```
+
+---
+
+## Testing
+
+### Running Tests
+
+```bash
+# All auth tests
+pytest tests/auth/
+
+# Specific test file
+pytest tests/auth/test_services.py
+
+# With coverage
+pytest --cov=auth tests/auth/
+```
+
+### Test Coverage
+
+- Unit Tests: 95%
+- Integration Tests: 90%
+- Overall: 92%
+
+Target: 90%+
+
+---
+
+## Security Considerations
+
+1. **Password Storage**: Never stored plain-text, always bcrypt hashed (cost: 12)
+2. **JWT Secrets**: Minimum 32 characters, stored in env vars
+3. **Rate Limiting**: 5 failed attempts = 15 min lockout
+4. **Token Expiry**: 24h for access tokens, 30d for refresh
+5. **SQL Injection**: Parameterized queries via SQLAlchemy
+6. **CORS**: Configured for specific origins only
+
+---
+
+## Troubleshooting
+
+### Problem: "Invalid token" errors
+
+**Cause**: Token expired or JWT_SECRET_KEY changed
+
+**Solution**: 
+- Check token expiry time
+- Verify JWT_SECRET_KEY hasn't changed
+- Use refresh token to get new access token
+
+### Problem: Login fails with correct password
+
+**Cause**: bcrypt cost factor mismatch
+
+**Solution**:
+- Check BCRYPT_COST_FACTOR env var
+- Verify password was hashed with same cost factor
+
+---
+
+## Future Enhancements
+
+- OAuth 2.0 integration (Google, GitHub)
+- Two-factor authentication (TOTP)
+- Password reset via email
+- Account verification
+- Session management UI
+
+---
+
+## Related Documentation
+
+- Project State: `project-state.prd` (concise summary)
+- Initiative: `initiatives/0001-completed-user-authentication/`
+- API Docs: Auto-generated at `/docs`
+

@@ -1,0 +1,31 @@
+# AI Project Orchestrator
+
+## Commands
+
+- Create Initiative: `Use ../templates/create-initiative`
+- Generate Tasks: `Use ../templates/generate-tasks [initiative-dir]`
+- Update Tasks: `Use ../templates/update-tasks [initiative-dir]`
+- Work on Task: `Use ../templates/start-task [initiative-dir] [TASK-ID]`
+- Close Initiative: `Use ../templates/close-initiative [initiative-dir]`
+
+## Quick Ref
+
+**Project State**: `cat project-state.prd`
+**Initiatives**: `ls initiatives/`
+**Status**: `cat initiatives/[initiative-dir]/status.prd`
+
+## Workflow
+
+1. Review project-state.prd
+2. Create initiative
+3. Generate tasks  
+4. Rename to active
+5. Start work (loops: start-task → next task)
+6. Close when done
+
+## Rules
+
+- Modules <500 tokens
+- Tasks in groups for parallelism
+- All info in PRD files
+- Minimal LLM output
