@@ -8,8 +8,7 @@ Each initiative is a directory:
 ```
 NNNN-status-name/
 ├── description.prd    # Initiative PRD
-├── tasks.prd          # Task groups and checklist
-└── status.prd         # Progress tracking
+└── tasks.prd          # Task groups, metadata, and status tracking
 ```
 
 ## Status Values
@@ -21,28 +20,24 @@ NNNN-status-name/
 - `completed` - All tasks done, closed
 - `cancelled` - Abandoned
 
-## Files
-
-**INDEX.prd**: Registry of all initiatives with status and dependencies
-
 ## Example
 
-See `0001-completed-user-authentication/` for a complete example showing:
+See `0001-user-authentication/` for a complete example showing:
 - Full PRD structure
+- tasks.prd with metadata section
 - Task groups (0-6) with 37 tasks
 - Parallel execution organization
-- Status tracking
+- Status tracking via [START: ] and [END: ] markers
 - Cross-initiative dependencies
 
 ## Creating Initiatives
 
-Use: `../templates/create-initiative`
+Use: `/aipo-create-initiative`
 
 ## Workflow
 
-1. Create initiative (generates `NNNN-planned-name/`)
-2. Generate tasks
-3. Rename to `NNNN-active-name/`
-4. Work on tasks
-5. Close (renames to `NNNN-completed-name/`)
+1. Create initiative (generates `NNNN-name/`)
+2. Generate tasks (creates tasks.prd with metadata)
+3. Work on tasks (marks as `[x]`, updates Summary)
+4. Auto-close (last task completion fills [END:] and marks "Completed")
 

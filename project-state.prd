@@ -1,6 +1,6 @@
 # Project State
 
-**Last Updated**: 2025-10-14  
+**Last Updated**: 2025-10-15  
 **Project**: AI Project Orchestrator  
 **Version**: 2.0.0
 
@@ -10,29 +10,38 @@
 
 AI Project Orchestrator is a structured framework for AI agents to efficiently develop complex software projects with parallel execution and reduced context requirements. It addresses critical challenges: context loss, poor dependency tracking, and parallel execution support.
 
-**Project Type**: Documentation Framework / Development Methodology  
-**Primary Language(s)**: Markdown  
-**Architecture Pattern**: File-centric, minimal templates, enforcing validation
+**Project Type**: Development Framework / CLI Tool  
+**Primary Language(s)**: Python 3, Markdown  
+**Architecture Pattern**: Modular Python package, file-centric state, enforcing validation
 
 **Design Principles**:
 - Token efficient: Minimal templates, info in PRD files
 - Enforcing: Critical steps cannot be skipped
 - File-centric: All state persisted, minimal LLM output
 - Validation: Checkpoints before proceeding
+- Modular: Separation of concerns with Python package structure
+- Deterministic: Status checks without LLM inference
 
 ---
 
 ## Current Status
 
 **Initiatives**: 0 active, 0 completed  
-**Modules**: 4 (Template System, Documentation, Examples, Project Meta)  
-**Templates**: 6 commands (768 lines total, 65% reduction from initial)
+**Modules**: 5 (CLI Package, Slash Commands, Documentation, Examples, Project Meta)  
+**Commands**: 9 CLI commands + 7 slash commands
 
 **Key Milestones**:
-- Core Framework: Complete (2025-10-10)
-- Template System: Complete, minimal redesign (2025-10-14)
-- Documentation: Complete (2025-10-14)
-- Examples: Complete with full initiative example (2025-10-14)
+- **Version 2.0.0 - Production Release** (2025-10-15):
+  - Core Framework: File-centric state, initiative-based organization, task groups
+  - Modular Architecture: Python package with 9 CLI commands
+  - Slash Commands: 7 Claude Code commands with user approval gates
+  - Swarm Configuration: Multi-initiative, skill-based agents, persona descriptions
+  - Strategic Planning: 5 dimensions (parallelization, feedback, homogeneity, dependencies, slicing)
+  - Monitoring & Analysis: Interactive monitoring, agent activity analysis, parallelism insights
+  - Dependency Management: Unblock command, wave-based execution, bidirectional validation
+  - Context-Based Orchestration: CLAUDE.md workflow enforcement
+  - Swarm Lifecycle: Cancel, archive, activity analysis commands
+  - Documentation: Optimized, token-efficient, production-ready
 - Status: Production-ready
 
 ---
@@ -43,7 +52,8 @@ AI Project Orchestrator is a structured framework for AI agents to efficiently d
 
 ```
 Foundation
-├── Template System (6 commands)
+├── CLI Package (aipo/) - Modular Python implementation
+├── Slash Commands (templates/) - Claude Code command templates
 └── Documentation System
 
 Implementation
@@ -53,25 +63,97 @@ Implementation
 
 ---
 
-## Module: Template System
+## Module: CLI Package
 
-**Summary**: Six minimal, enforcing command templates that guide AI through project initialization, initiative management, task execution, and closure. Token-efficient design with strict validation.
+**Summary**: Modular Python package (aipo/) implementing the orchestrator CLI with 7 commands. Separation of concerns with models, core logic, utilities, and command implementations. Deterministic status checking without LLM.
 
-**Status**: ✅ Complete
+**Status**: ✅ Complete (v2.2)
 
 **Key Decisions**:
-- Minimal style: 571 lines total (65% reduction)
+- Modular structure: models, core, utils, cli separated
+- Command pattern: Each command in its own module
+- Type-safe: Comprehensive type hints and dataclasses
+- Deterministic: Status/next commands use no LLM
+- Properties on models for computed values
+- Pure functions where possible for testability
+
+**Acceptance Criteria**:
+- [x] Package structure created (aipo/__init__.py)
+- [x] Models module with Initiative and Task classes
+- [x] Core validation and analysis functions
+- [x] Utility functions (colors, progress bars, extractors)
+- [x] CLI argument parsing
+- [x] 7 command implementations (init, status, next, monitor, validate, check, list)
+- [x] All commands tested and working
+- [x] Type hints throughout
+- [x] Comprehensive docstrings
+
+**Tech Stack**:
+- Python 3.10+
+- argparse (CLI)
+- pathlib (file operations)
+- dataclasses (models)
+- re (text parsing)
+
+**Interfaces**:
+- `aipo/__init__.py` - Package initialization
+- `aipo/models.py` - Data models (Initiative, Task, Status)
+- `aipo/core.py` - Validation and categorization
+- `aipo/utils.py` - Utilities (Colors, progress bars, extractors)
+- `aipo/cli.py` - CLI entry point and argument parsing
+- `aipo/commands/` - Command implementations (7 modules)
+  - `init.py` - Install slash commands
+  - `status.py` - Quick health check (NEW v2.2)
+  - `next.py` - Next task suggestion (NEW v2.2)
+  - `monitor.py` - Detailed monitoring
+  - `validate.py` - Swarm validation
+  - `check.py` - Initiative check
+  - `list.py` - List initiatives
+
+**Dependencies**: None (Python stdlib only)
+
+**File Structure**:
+```
+aipo/
+├── __init__.py          # Package exports
+├── models.py            # Initiative, Task, Status
+├── core.py              # validate_initiative, get_all_initiatives, categorize
+├── utils.py             # Colors, progress_bar, extract_tasks
+├── cli.py               # main() CLI entry point
+└── commands/            # Command implementations
+    ├── __init__.py
+    ├── init.py
+    ├── status.py       # NEW v2.2
+    ├── next.py         # NEW v2.2
+    ├── monitor.py
+    ├── validate.py
+    ├── check.py
+    └── list.py
+```
+
+---
+
+## Module: Slash Commands
+
+**Summary**: Seven Claude Code slash commands in Markdown format with frontmatter. Minimal, enforcing templates that guide AI through project initialization, initiative management, task execution with auto-close, planning, and parallel execution. Direct integration with Claude Code and Claude Swarm.
+
+**Status**: ✅ Complete (v2.3)
+
+**Key Decisions**:
+- Minimal style: streamlined templates
 - MUST/STOP/ENFORCE directives (no skipping critical steps)
 - File-centric: All state in PRD files, not LLM output
-- Merged complete-task into start-task for automation
+- Auto-close: Initiative closes automatically on last task completion
 - Schematic bullet-point format
 
 **Acceptance Criteria**:
-- [x] All 6 templates created and validated
-- [x] Enforcement directives present (20 total)
+- [x] All 7 commands created and validated
+- [x] Enforcement directives present
 - [x] Output minimal (4 lines typical)
 - [x] Preserve exact state in file updates
 - [x] Testing requirements enforced
+- [x] Planning command suggests next initiatives
+- [x] Swarm configuration enforces /aipo-start-task usage
 
 **Tech Stack**:
 - Markdown (template format)
@@ -79,12 +161,13 @@ Implementation
 - Validation checklists
 
 **Interfaces**:
-- `templates/create-project` (133 lines)
-- `templates/create-initiative` (146 lines)
-- `templates/generate-tasks` (103 lines)
-- `templates/update-tasks` (196 lines)
-- `templates/start-task` (111 lines)
-- `templates/close-initiative` (79 lines)
+- `templates/aipo-create-project.md` - Initialize new project
+- `templates/aipo-create-initiative.md` - Create initiative with PRD
+- `templates/aipo-create-tasks.md` - Generate task groups
+- `templates/aipo-update-tasks.md` - Add or delete tasks
+- `templates/aipo-start-task.md` - Work on tasks (includes auto-close logic)
+- `templates/aipo-plan.md` - Analyze project and suggest next initiatives (NEW v2.3)
+- `templates/aipo-configure-swarm.md` - Create swarm config for parallel execution (NEW v2.3)
 
 **Dependencies**: None (foundation)
 
@@ -145,7 +228,6 @@ Implementation
 - [x] project-state-example.prd (TaskFlow)
 - [x] Complete initiative example
 - [x] Module example (authentication-system.prd)
-- [x] Initiative INDEX.prd
 - [x] .ai-orchestrator quick reference
 - [x] All README files
 
@@ -158,11 +240,9 @@ Implementation
 - `examples/project-state-example.prd`
 - `examples/.ai-orchestrator`
 - `examples/modules/authentication-system.prd`
-- `examples/initiatives/INDEX.prd`
-- `examples/initiatives/0001-completed-user-authentication/`
+- `examples/initiatives/0001-user-authentication/`
   - `description.prd`
   - `tasks.prd`
-  - `status.prd`
 
 **Dependencies**: Documentation System
 
@@ -217,14 +297,13 @@ Implementation
 
 ### File Structure
 - All state in .prd files
-- status.prd: Append-only log
-- tasks.prd: Single checklist
+- tasks.prd: Single source of truth (metadata, tasks, status)
 - No information in LLM output
 
 ### Performance
 - Template processing: Fast (<5 sec)
 - Project state: <2000 tokens total
-- 6 templates: 768 lines (vs 1662 original)
+- 5 templates: streamlined workflow
 
 ---
 
@@ -248,16 +327,15 @@ Implementation
 
 ```
 ai-project-orchestrator/
-├── README.md                   # Complete documentation (1024 lines)
+├── README.md                   # Complete documentation
 ├── LICENSE                     # MIT License
 ├── project-state.prd           # This file
-├── templates/                  # 6 executable commands (768 lines)
-│   ├── create-project
-│   ├── create-initiative
+├── templates/                  # Slash command templates (.md format)
+│   ├── aipo-create-project
+│   ├── aipo-create-initiative
 │   ├── generate-tasks
 │   ├── update-tasks
-│   ├── start-task
-│   └── close-initiative
+│   └── start-task (includes auto-close)
 └── examples/                   # Complete examples
     ├── project-state-example.prd
     ├── .ai-orchestrator
@@ -267,12 +345,10 @@ ai-project-orchestrator/
     │   └── authentication-system.prd
     └── initiatives/
         ├── README.md
-        ├── INDEX.prd
-        └── 0001-completed-user-authentication/
+        └── 0001-user-authentication/
             ├── README.md
             ├── description.prd
-            ├── tasks.prd
-            └── status.prd
+            └── tasks.prd
 ```
 
 ---
@@ -290,12 +366,12 @@ ai-project-orchestrator/
 
 ## Workflow
 
-1. Initialize: `Use templates/create-project`
-2. Create initiative: `Use templates/create-initiative`
-3. Generate tasks: `Use templates/generate-tasks [initiative-dir]`
-4. Update tasks (if needed): `Use templates/update-tasks [initiative-dir]`
-5. Work on tasks: `Use templates/start-task [initiative-dir] [TASK-ID]`
-6. Close: `Use templates/close-initiative [initiative-dir]`
+1. Initialize: `/aipo-create-project`
+2. Create initiative: `/aipo-create-initiative`
+3. Generate tasks: `/aipo-generate-tasks [initiative-dir]`
+4. Update tasks (if needed): `/aipo-update-tasks [initiative-dir]`
+5. Work on tasks: `/aipo-start-task [initiative-dir] [TASK-ID]`
+6. (Initiative auto-closes when last task completes)
 
 ---
 
@@ -318,7 +394,7 @@ ai-project-orchestrator/
 - [README.md](README.md) - Main documentation
 - [LICENSE](LICENSE) - MIT license
 - [examples/](examples/) - Complete examples
-- [templates/](templates/) - All commands
+- [templates/](templates/) - All slash command templates
 
 ---
 
@@ -328,7 +404,7 @@ ai-project-orchestrator/
 1. This file (project-state.prd) - understand system
 2. README.md - full documentation
 3. examples/ - see working examples
-4. templates/ - command reference
+4. templates/ - slash command templates reference
 
 **Working on Tasks**:
 1. Read context (minimal, <500 tokens per module)
@@ -339,7 +415,7 @@ ai-project-orchestrator/
 **Key Rules**:
 - All state in .prd files
 - Test before marking complete
-- Update status.prd (timestamp only)
+- Update tasks.prd (mark [x] and update Summary)
 - Preserve exact task descriptions
 
 ---

@@ -1,0 +1,69 @@
+# Tasks: Backend Models & Database Layer
+
+**Initiative ID**: 0003
+**Name**: backend-models
+**Dependencies**: 0002 (database-schema)
+**Target Date**: 2025-10-28
+**Estimated Hours**: 21h
+
+---
+
+[START: 2025-10-14 09:00]
+
+## Task Group 0: Database Setup & Base Models
+
+- [ ] TASK-001: Install psycopg3 and configure SQLAlchemy
+  - Dependencies: None
+  - Estimated: 1h
+  - Details: Add psycopg[binary]>=3.1 to pyproject.toml, configure database connection
+
+- [ ] TASK-002: Create Base model with timestamps
+  - Dependencies: TASK-001
+  - Estimated: 1h
+  - Details: Base class with id, created_at, updated_at fields
+
+- [ ] TASK-003: Configure database session management
+  - Dependencies: TASK-001
+  - Estimated: 1.5h
+  - Details: Session factory, FastAPI dependency injection pattern
+
+## Task Group 1: Infrastructure/Platform Layer Models
+
+- [ ] TASK-004: Create PlatformTeam model
+  - Dependencies: TASK-002
+  - Estimated: 0.5h
+  - Details: Maps to platform_teams table
+
+- [ ] TASK-005: Create Account model
+  - Dependencies: TASK-004
+  - Estimated: 0.5h
+  - Details: Maps to accounts table, FK to platform_teams
+
+[... more tasks ...]
+
+## Task Group 6: Query Utilities & Documentation
+
+- [ ] TASK-024: Create query utility functions
+  - Dependencies: TASK-022
+  - Estimated: 1h
+  - Details: Common query patterns, pagination helpers
+
+- [ ] TASK-025: Add model documentation and examples
+  - Dependencies: TASK-024
+  - Estimated: 1h
+  - Details: Docstrings, usage examples in code comments
+
+- [ ] TASK-026: Update project-state.prd with Backend Models module
+  - Dependencies: TASK-025
+  - Estimated: 0.5h
+  - Details: Add module (<500 tokens) documenting models, session management, key decisions
+
+[END: ]
+
+---
+
+## Summary
+
+**Total Tasks**: 26
+**Total Groups**: 7
+**Status**: Not started (0/26 completed)

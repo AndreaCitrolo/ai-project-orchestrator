@@ -2,7 +2,7 @@
 
 Structured framework for AI agents: batch planning + parallel execution + minimal context.
 
-**Version**: 2.0.0
+**Version**: 3.0.0
 
 ## Overview
 
@@ -104,14 +104,12 @@ Project structure (after init):
 | `next --all` | Next per initiative |
 | `next --agent [name]` | Agent assignment |
 | `monitor` | Real-time swarm tracking |
-| `monitor --interactive` | Live monitoring (auto-refresh) |
 | `check [dir]` | Validate initiative |
 | `validate [file]` | Validate swarm config |
 | `list` | List initiatives |
 | `unblock` | Dependency analysis |
 | `swarm --cancel [file]` | Stop swarm |
 | `swarm --archive [file]` | Archive completed swarm |
-| `swarm --activity [file]` | Analyze agent parallelism |
 
 ## Files
 
