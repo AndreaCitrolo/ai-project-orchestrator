@@ -8,8 +8,19 @@ allowed-tools: Read, Write
 
 1. **Read** `ai-project/initiatives/$1/description.prd`
 2. **Read** `@ai-project/project-state.prd`
-3. **Generate** 15-50 tasks organized in groups (Group 0: setup, Group 1+: features)
-4. **Write** `ai-project/initiatives/$1/tasks.prd`:
+3. **Decompose with SuperClaude**:
+   ```bash
+   /sc:workflow "ai-project/initiatives/$1/description.prd and @ai-project/project-state.prd" --strategy agile --parallel
+   ```
+   This provides:
+   - Task decomposition with dependencies (persona-architect)
+   - Sequential group organization (task-management mode)
+   - Parallel execution opportunities
+   - Effort estimation
+   
+   Map SuperClaude workflow to AIPO task groups (Group 0, 1, 2...).
+4. **Generate** 15-50 tasks organized in groups (Group 0: setup, Group 1+: features)
+5. **Write** `ai-project/initiatives/$1/tasks.prd`:
 
 ```markdown
 **ID**: [NNNN]
@@ -43,20 +54,20 @@ allowed-tools: Read, Write
 [Groups 2-N...]
 ```
 
-5. **Validate**:
+6. **Validate**:
    - [ ] 15-50 tasks
    - [ ] Groups: 0 (prereqs), 1-N (features)
    - [ ] Time estimates
    - [ ] Metadata + Summary sections
 
-6. **User Approval** - STOP and WAIT:
+7. **User Approval** - STOP and WAIT:
    ```
    📋 Review: ai-project/initiatives/[actual-dir]/tasks.prd
    
    Reply: "approved" or "edit [feedback]"
    ```
 
-7. **After approval**:
+8. **After approval**:
    ```
    ✅ Tasks ready
    

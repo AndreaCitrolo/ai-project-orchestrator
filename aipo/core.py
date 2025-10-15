@@ -43,8 +43,8 @@ def validate_initiative(directory: Path) -> Initiative:
     tasks_content = tasks_file.read_text()
 
     # Validate new format structure
-    if "**Initiative ID**:" not in tasks_content:
-        initiative.warnings.append("tasks.prd missing metadata section (Initiative ID)")
+    if "**ID**:" not in tasks_content:
+        initiative.warnings.append("tasks.prd missing metadata section (**ID**:)")
         if initiative.status == Status.READY:
             initiative.status = Status.WARNING
 
@@ -62,8 +62,9 @@ def validate_initiative(directory: Path) -> Initiative:
     
     if start_match:
         initiative.started_at = start_match.group(1).strip() or None
-    else:
-        initiative.warnings.append("tasks.prd missing [START: ] marker")
+    elif initiative.completed_count > 0:
+        # Only warn if tasks are completed but no START marker
+        initiative.warnings.append("tasks.prd missing [START: ] marker but has completed tasks")
         if initiative.status == Status.READY:
             initiative.status = Status.WARNING
     

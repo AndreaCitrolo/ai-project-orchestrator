@@ -19,6 +19,57 @@ def init_commands(run_swarm: bool = False) -> int:
     print(f"{Colors.BOLD}🚀 Initializing AI Project Orchestrator{Colors.NC}")
     print()
     
+    # Install SuperClaude Framework (required dependency)
+    print(f"{Colors.BOLD}📦 Checking SuperClaude Framework...{Colors.NC}")
+    
+    # Check common installation paths
+    sc_paths = [
+        "superclaude",  # In PATH
+        str(Path.home() / ".local/bin/superclaude"),  # pipx default
+    ]
+    
+    sc_installed = False
+    sc_version = None
+    for sc_path in sc_paths:
+        result = subprocess.run([sc_path, "--version"], capture_output=True, check=False, text=True)
+        if result.returncode == 0:
+            sc_installed = True
+            sc_version = result.stdout.strip()
+            print(f"{Colors.GREEN}✓{Colors.NC} SuperClaude installed: {sc_version}")
+            break
+    
+    if not sc_installed:
+        print("Installing SuperClaude...")
+        try:
+            # Use pipx (recommended)
+            result = subprocess.run(
+                ["pipx", "install", "superclaude"], 
+                capture_output=True, 
+                check=False,
+                text=True
+            )
+            
+            if result.returncode != 0:
+                if "already installed" in result.stderr:
+                    print(f"{Colors.GREEN}✓{Colors.NC} SuperClaude already installed")
+                else:
+                    raise Exception(f"pipx install failed: {result.stderr}")
+            else:
+                print(f"{Colors.GREEN}✓{Colors.NC} SuperClaude Framework installed")
+            
+            # Check if PATH needs updating
+            verify = subprocess.run(["superclaude", "--version"], capture_output=True, check=False)
+            if verify.returncode != 0:
+                print(f"{Colors.YELLOW}⚠️  SuperClaude installed but not in PATH{Colors.NC}")
+                print(f"{Colors.YELLOW}   Add to your shell config (~/.bashrc or ~/.zshrc):{Colors.NC}")
+                print(f"{Colors.YELLOW}   export PATH=\"$HOME/.local/bin:$PATH\"{Colors.NC}")
+                print(f"{Colors.YELLOW}   Then: source ~/.zshrc{Colors.NC}")
+        except Exception as e:
+            print(f"{Colors.RED}❌ Error: {e}{Colors.NC}")
+            print(f"{Colors.YELLOW}   Install manually: pipx install superclaude{Colors.NC}")
+            return 1
+    print()
+    
     # Determine source directory (where aipo.py is located)
     script_dir = Path(__file__).parent.parent.parent
     commands_src = script_dir / "templates"

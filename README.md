@@ -2,13 +2,13 @@
 
 Structured framework for AI agents: batch planning + parallel execution + minimal context.
 
-**Version**: 2.1.0
+**Version**: 2.2.0
 
 ## Overview
 
 **Solves**:
 - Context loss between sessions
-- Poor dependency tracking
+- Poor dependency tracking  
 - No parallel execution
 - Inconsistent state
 
@@ -25,6 +25,7 @@ Structured framework for AI agents: batch planning + parallel execution + minima
 - **No external dependencies** (standard library only)
 - **Claude Code** (for slash commands)
 - **Claude Swarm** (optional, for parallel execution)
+- **SuperClaude Framework** (required, installed via `aipo init`)
 
 ## Quick Start
 

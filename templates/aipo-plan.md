@@ -8,9 +8,30 @@ allowed-tools: Read, Bash
 
 1. Run: `!python3 ai-project-orchestrator/aipo.py status --json`
 2. Read @ai-project/project-state.prd
-3. List 3-7 candidate initiatives (1 line each)
-4. Show 4-5 strategies optimizing different dimensions
-5. Recommend one
+3. **Analyze with SuperClaude** (context-aware):
+   - **LOOP** project-state.prd exists (existing project):
+   ```bash
+     /sc:brainstorm "plan next initiatives provide options: dimensions task parallelization, time to user testing" --orchestrate --ultracompressed
+     @agent-system-architect
+     @agent-frontend-architect
+     @agent-backend-architect
+     @agent-devops-architect
+     ```
+     
+     ```bash
+     /sc:improve --orchestrate --ultracompressed --safe --interactive --type quality
+     @agent-system-architect
+     @agent-frontend-architect
+     @agent-backend-architect
+     @agent-devops-architect
+     ```
+
+
+   This provides strategic analysis (persona-architect) with token-efficient context.
+   Map SuperClaude suggestions to AIPO strategy format below.
+4. List 3-7 candidate initiatives (1 line each)
+5. Show 4-5 strategies optimizing different dimensions
+6. Recommend one
 
 ## Strategy Types
 

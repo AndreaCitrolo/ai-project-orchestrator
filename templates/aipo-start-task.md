@@ -1,7 +1,7 @@
 ---
 description: Execute task (auto-closes initiative)
 argument-hint: [initiative-dir] [TASK-ID]
-allowed-tools: Read, Edit, Write, Bash
+allowed-tools: Read, Edit, Write, Bash, SlashCommand
 ---
 
 # Start Task
@@ -25,7 +25,35 @@ Normal workflow: `/aipo-configure-swarm` → swarm uses this automatically
 
 3. **Start**: If first task → set `[START: YYYY-MM-DD HH:MM]`
 
-4. **Implement**: Follow requirements from description.prd
+4. **Implement** (using SuperClaude):
+   Extract task description from tasks.prd, then detect task type from Agent field:
+   
+   - Backend task:
+     ```bash
+     /sc:implement "[task-description from tasks.prd]" --strict --tdd
+     @agent-backend-architect
+     ```
+   
+   - Frontend task:
+     ```bash
+     /sc:implement "[task-description from tasks.prd]" --magic
+     @agent-frontend-architect
+     ```
+   
+   - Infra task:
+     ```bash
+     /sc:implement "[task-description from tasks.prd]" --strict
+     @agent-devops-architect
+     ```
+   
+   - Fullstack task:
+     ```bash
+     /sc:implement "[task-description from tasks.prd]" --tdd
+     @agent-system-architect
+     @agent-fullstack-engineer
+     ```
+   
+   Follow requirements from description.prd
 
 5. **Test**: Run tests, verify passing
 

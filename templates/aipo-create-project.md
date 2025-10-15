@@ -8,13 +8,38 @@ allowed-tools: Read, Write
 ## Steps
 
 1. **Check**: IF `ai-project/` exists → STOP, ask user
-2. **Ask** (all at once):
-   - Project name, type, languages?
-   - Description (1-2 sentences)?
-   - Initial modules (2-4)?
-   - Key technologies?
 
-3. **Create**:
+2. **Brainstorm & Gather Requirements**:
+   ```bash
+   /sc:brainstorm --strategy systematic --orchestration
+   @agent-system-architect
+   @agent-backend-architect
+   @agent-devops-architect
+   @agent-frontend-architect
+   ```
+   Then use:
+   ```bash
+   /sc:spec-panel  --mode discussion --format structured --orchestration --ultracompressed
+   @agent-system-architect
+   @agent-technical-writer
+   @agent-quality-engineer
+   ```
+   This provides:
+   - Strategic ideation and exploration (persona-architect)
+   - Interactive requirements gathering
+   - Structured PRD format output
+   - Module decomposition (<500 tokens)
+   - Token-efficient context (30-50% reduction)
+   
+   Map SuperClaude output to AIPO project-state.prd format below.
+
+3. **Consolidate** answers from SuperClaude:
+   - Project name, type, languages
+   - Description (1-2 sentences)
+   - Initial modules (2-4)
+   - Key technologies
+
+4. **Create**:
    ```
    ai-project/
    ├── project-state.prd
@@ -22,7 +47,7 @@ allowed-tools: Read, Write
    └── modules/
    ```
 
-4. **Write** `ai-project/project-state.prd`:
+5. **Write** `ai-project/project-state.prd`:
    ```markdown
    # Project State
    
@@ -56,7 +81,7 @@ allowed-tools: Read, Write
    **Token Count**: ~[estimate]
    ```
 
-5. **Create** `.ai-orchestrator` guide:
+6. **Create** `.ai-orchestrator` guide:
    ```markdown
    # AI Project Orchestrator Guide
    
@@ -71,12 +96,12 @@ allowed-tools: Read, Write
    - initiatives/NNNN-name/: description.prd + tasks.prd
    ```
 
-6. **Validate**:
+7. **Validate**:
    - [ ] project-state.prd exists
    - [ ] All modules defined
    - [ ] All questions answered
 
-7. **User Approval** - STOP and WAIT
+8. **User Approval** - STOP and WAIT
    ```
    📋 Review: ai-project/project-state.prd
    
