@@ -2,7 +2,7 @@
 
 Structured framework for AI agents: batch planning + parallel execution + minimal context.
 
-**Version**: 2.0.0
+**Version**: 2.1.0
 
 ## Overview
 
@@ -18,6 +18,13 @@ Structured framework for AI agents: batch planning + parallel execution + minima
 - Task groups for parallel work
 - Explicit dependencies
 - File-centric (minimal LLM output)
+
+## Requirements
+
+- **Python 3.10+** (uses union type syntax: `Type | None`)
+- **No external dependencies** (standard library only)
+- **Claude Code** (for slash commands)
+- **Claude Swarm** (optional, for parallel execution)
 
 ## Quick Start
 

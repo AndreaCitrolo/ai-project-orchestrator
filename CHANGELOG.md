@@ -1,6 +1,6 @@
 # AI Project Orchestrator - Changelog
 
-## Version 2.0.0 - Production Release (2025-10-15)
+## Version 2.1.0 - Production Release (2025-10-15)
 
 ### 🎯 Overview
 
@@ -86,6 +86,10 @@ Complete rewrite of AI Project Orchestrator with production-ready features, modu
 - **Swarm-first approach**: Primary workflow uses swarms for parallel execution
 
 ### 📦 Architecture
+
+#### Requirements
+- **Python 3.10+** (uses union type syntax)
+- **No external dependencies** (standard library only)
 
 #### Modular Python Package
 ```

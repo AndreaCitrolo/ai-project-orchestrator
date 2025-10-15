@@ -2,7 +2,7 @@
 
 **Last Updated**: 2025-10-15  
 **Project**: AI Project Orchestrator  
-**Version**: 2.0.0
+**Version**: 2.1.0
 
 ---
 
@@ -13,6 +13,12 @@ AI Project Orchestrator is a structured framework for AI agents to efficiently d
 **Project Type**: Development Framework / CLI Tool  
 **Primary Language(s)**: Python 3, Markdown  
 **Architecture Pattern**: Modular Python package, file-centric state, enforcing validation
+
+**Dependencies**:
+- Python 3.10+ (required for union type syntax)
+- Claude Code (for slash commands)
+- Claude Swarm (optional, for parallel execution)
+- No external Python packages (standard library only)
 
 **Design Principles**:
 - Token efficient: Minimal templates, info in PRD files
@@ -31,7 +37,7 @@ AI Project Orchestrator is a structured framework for AI agents to efficiently d
 **Commands**: 9 CLI commands + 7 slash commands
 
 **Key Milestones**:
-- **Version 2.0.0 - Production Release** (2025-10-15):
+- **Version 2.1.0 - Production Release** (2025-10-15):
   - Core Framework: File-centric state, initiative-based organization, task groups
   - Modular Architecture: Python package with 9 CLI commands
   - Slash Commands: 7 Claude Code commands with user approval gates
